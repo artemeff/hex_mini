@@ -1,11 +1,15 @@
 defmodule HexMini.Endpoint.Router do
   use Plug.Router
 
-  alias HexMini.Endpoint.Repo
+  alias HexMini.Endpoint.{API, Repo}
 
   plug HexMini.Endpoint.Plugs.Authorization, except: [{"GET", "/public_key"}]
   plug :match
   plug :dispatch
+
+  # HexMini endpoints
+
+  get "/", to: API.Changelog
 
   # Hex Repo endpoints
 

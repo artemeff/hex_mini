@@ -11,7 +11,8 @@ defmodule HexMini.Factory do
   def release_factory do
     %HexMini.Packages.Release{
       version: "1.0.0", checksum: checksum(),
-      requirements: [build(:requirement)]
+      requirements: [build(:requirement)],
+      owner: "john@doe"
     }
   end
 
@@ -23,7 +24,7 @@ defmodule HexMini.Factory do
 
   def changelog_factory do
     %HexMini.Packages.Changelog{
-      user: "john@doe", action: "publish"
+      user: "john@doe", action: "publish", package: build(:package), release: build(:release)
     }
   end
 

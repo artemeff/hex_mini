@@ -1,4 +1,4 @@
-defmodule Integration.EndpointTest do
+defmodule Integration.Endpoint.RepoTest do
   use HexMini.Case
 
   describe "GET /public_key" do

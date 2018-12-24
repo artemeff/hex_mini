@@ -10,13 +10,17 @@ defmodule HexMini.Endpoint.API do
   end
 
   def respond(conn, status, body) do
-    accept = Conn.get_req_header(conn, "accept")
-    {response, content_type} = serialize(accept, body)
+    accept = accept_header(conn)
+    {response, content_type} = serialize(conn, accept, body)
 
     conn
     |> Conn.put_resp_header("content-type", content_type)
     |> Conn.send_resp(status, response)
     |> Conn.halt
+  end
+
+  def respond_text_lazy(conn, responder) when is_function(responder, 1) do
+    Conn.put_private(conn, :response_text_lazy, responder)
   end
 
   def respond_error(conn, status, assigns \\ []) do
@@ -39,10 +43,23 @@ defmodule HexMini.Endpoint.API do
   defp message(500), do: "Internal server error"
   defp message(_), do: nil
 
-  defp serialize(["application/vnd.hex+erlang"], body) do
+  defp accept_header(conn) do
+    case Conn.get_req_header(conn, "accept") do
+      [v] -> String.split(v, ",")
+      _or -> ["application/json"]
+    end
+  end
+
+  defp serialize(_conn, ["application/vnd.hex+erlang" | _], body) do
     {serialize_erlang(body), "application/vnd.hex+erlang"}
   end
-  defp serialize(_, body) do
+  defp serialize(conn, ["text/" <> _ | _], body) do
+    case Map.fetch(conn.private, :response_text_lazy) do
+      {:ok, responder} -> {responder.(body), "text/plain"}
+      :error -> {inspect(body, pretty: true), "text/plain"}
+    end
+  end
+  defp serialize(_conn, _, body) do
     {Jason.encode!(body), "application/json"}
   end
 

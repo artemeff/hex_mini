@@ -3,7 +3,16 @@ defmodule HexMini.Packages do
   alias HexMini.Storage
   alias HexMini.Packages.{Changelog, Package, Release, Requirement}
 
+  import Ecto.Query
   import Ecto.Changeset
+
+  def changelog do
+    Repo.all(
+      from(c in Changelog,
+        preload: [:release, :package],
+        order_by: [desc: c.inserted_at],
+        limit: 100))
+  end
 
   def fetch(name) do
     case Package |> Repo.get_by(name: name) |> Repo.preload(releases: :requirements) do
