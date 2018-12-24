@@ -1,21 +1,68 @@
-# HexMini
+# HexMini — self-hosted minimal hex.pm
 
-**TODO: Add description**
+* [Installation](#Installation)
+* [Usage](#Usage)
+* [Configuration](#Configuration)
+* [Contributing](#Contributing)
+
+---
 
 ## Installation
 
-If [available in Hex](https://hex.pm/docs/publish), the package can be installed
-by adding `hex_mini` to your list of dependencies in `mix.exs`:
+### Generate Keypair
+
+```bash
+$ openssl genpkey -algorithm RSA -out private_key.pem -pkeyopt rsa_keygen_bits:2048
+$ openssl rsa -pubout -in private_key.pem -out public_key.pem
+```
+
+### Start HexMini using Docker
+
+...
+
+### Start HexMini using Docker Compose
+
+...
+
+---
+
+## Usage
+
+### Register private repo
+
+```bash
+$ curl http://<HOST>/public_key -so ~/.hex/<REPO_NAME>.pem
+$ mix hex.repo add <REPO_NAME> http://<HOST> --public-key ~/.hex/<REPO_NAME>.pem --auth-key <AUTH_KEY>
+```
+
+### Use it to fetch packages
 
 ```elixir
-def deps do
+defp deps do
   [
-    {:hex_mini, "~> 0.1.0"}
+    {:package, "~> 1.0", repo: "<REPO_NAME>"},
   ]
 end
 ```
 
-Documentation can be generated with [ExDoc](https://github.com/elixir-lang/ex_doc)
-and published on [HexDocs](https://hexdocs.pm). Once published, the docs can
-be found at [https://hexdocs.pm/hex_mini](https://hexdocs.pm/hex_mini).
+### Use it to publish packages
 
+```bash
+$ HEX_API_URL=http://<HOST> HEX_API_KEY=<AUTH_KEY> mix hex.publish package
+```
+
+---
+
+## Configuration
+
+...
+
+---
+
+## Contributing
+
+1. Fork it
+2. Create your feature branch (`git checkout -b my-new-feature`)
+3. Commit your changes (`git commit -am 'add some feature'`)
+4. Push to the branch (`git push origin my-new-feature`)
+5. Create new Pull Request
