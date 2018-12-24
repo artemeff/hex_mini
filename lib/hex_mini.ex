@@ -16,20 +16,17 @@ defmodule HexMini do
   end
 
   def packages_path do
-    case Application.fetch_env(:hex_mini, :packages_path) do
-      {:ok, value} ->
-        value
-
-      :error ->
-        Path.join(priv_dir(), "packages")
-    end
+    Path.join(data_dir(), "packages")
   end
 
   def packages_path(file) do
     Path.join([packages_path() | List.wrap(file)])
   end
 
-  def priv_dir do
-    :code.priv_dir(:hex_mini)
+  def data_dir do
+    case Application.fetch_env(:hex_mini, :data_path) do
+      {:ok, path} -> path
+      :error -> :code.priv_dir(:hex_mini)
+    end
   end
 end

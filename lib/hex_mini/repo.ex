@@ -8,7 +8,7 @@ defmodule HexMini.Repo do
   defp database_path(config) do
     case Keyword.fetch(config, :database_path) do
       {:ok, path} -> path
-      :error -> Path.join([HexMini.priv_dir, "database", Keyword.fetch!(config, :database)])
+      :error -> Path.join([HexMini.data_dir, "database", Keyword.fetch!(config, :database)])
     end
   end
 end
