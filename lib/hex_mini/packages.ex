@@ -61,7 +61,7 @@ defmodule HexMini.Packages do
 
     %Release{}
     |> cast(params, [:package_id, :owner, :version, :checksum])
-    |> cast_assoc(:requirements, required: true, with: &requirement_changeset/2)
+    |> cast_assoc(:requirements, with: &requirement_changeset/2)
     |> validate_required([:package_id, :owner, :version, :checksum])
   end
 

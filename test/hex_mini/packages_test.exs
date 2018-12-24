@@ -20,6 +20,22 @@ defmodule HexMini.PackagesTest do
       assert length(release.requirements) == 2
     end
 
+    test "creates package without requirements" do
+      info = build(:publish_package)
+      info = put_in(info, [:metadata, "requirements"], %{})
+      tarball = <<1, 2, 3, 4, 5>>
+
+      assert {:ok, package, release} = Packages.publish(info, tarball, "john@doe")
+
+      assert package.name == info.metadata["name"]
+      assert package.owners == ["john@doe"]
+
+      assert release.package_id == package.id
+      assert release.version == info.metadata["version"]
+      assert release.owner == "john@doe"
+      assert length(release.requirements) == 0
+    end
+
     test "saves package in Storage" do
       info = build(:publish_package)
       tarball = <<1, 2, 3, 4, 5>>
