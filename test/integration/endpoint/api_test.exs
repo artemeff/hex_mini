@@ -50,6 +50,16 @@ defmodule Integration.Endpoint.APITest do
       assert json_response(conn, 401) == %{"status" => 401, "message" => "invalid API key"}
     end
 
+    test "returns 401 with invalid Basic authorization token" do
+      token = Base.encode64("ann@local")
+
+      conn = request(:get, "/", "", [
+        {"authorization", "Basic #{token}"}
+      ])
+
+      assert json_response(conn, 401) == %{"status" => 401, "message" => "invalid API key"}
+    end
+
     test "returns 401 when authorization header is not provided" do
       conn = request(:get, "/")
 
