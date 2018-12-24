@@ -19,8 +19,7 @@ defmodule HexMini.Case do
       Sandbox.mode(HexMini.Repo, {:shared, self()})
     end
 
-    # FIXME get rid of sqlite or `{busy,0}` messages
-    on_exit(fn -> :timer.sleep(50) end)
+    :ok
   end
 
   def errors_on(changeset) do
