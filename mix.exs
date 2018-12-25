@@ -25,7 +25,8 @@ defmodule HexMini.MixProject do
 
   defp deps do
     [
-      {:sqlite_ecto2, "~> 2.3.1"},
+      {:ecto_sql, "~> 3.0.0"},
+      {:postgrex, "~> 0.14.0"},
       {:plug_cowboy, "~> 2.0"},
       {:hex_core, "~> 0.3"},
       {:jason, "~> 1.1"},

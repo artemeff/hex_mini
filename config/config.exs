@@ -5,10 +5,10 @@ config :hex_mini,
   ecto_repos: [HexMini.Repo]
 
 config :hex_mini, HexMini.Repo,
-  database: "hex_mini_#{Mix.env}.sqlite3"
-
-config :ecto,
-  json_library: Jason
+  database: "hex_mini_#{Mix.env}",
+  hostname: "localhost",
+  username: "postgres",
+  password: "postgres"
 
 config :logger,
   level: :debug

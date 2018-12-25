@@ -71,8 +71,7 @@ defmodule HexMini.PackagesTest do
 
   describe "#fetch/1" do
     test "returns package info with requirements" do
-      requirement = build_list(3, :requirement)
-      release = build(:release, requirements: requirement)
+      release = build(:release, requirements: [build(:requirement)])
       package = insert(:package, releases: [release])
 
       assert {:ok, package} == Packages.fetch(package.name)

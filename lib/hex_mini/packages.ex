@@ -15,7 +15,15 @@ defmodule HexMini.Packages do
   end
 
   def fetch(name) do
-    case Package |> Repo.get_by(name: name) |> Repo.preload(releases: :requirements) do
+    query =
+      from(pkg in Package,
+        left_join: rls in Release, on: pkg.id == rls.package_id,
+        left_join: rmt in Requirement, on: rls.id == rmt.release_id,
+        preload: [releases: {rls, requirements: rmt}],
+        order_by: [asc: rls.inserted_at],
+        where: pkg.name == ^name)
+
+    case Repo.one(query) do
       %Package{} = package -> {:ok, package}
       nil -> {:error, :not_found}
     end

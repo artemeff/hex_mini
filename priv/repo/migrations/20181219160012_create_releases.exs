@@ -5,9 +5,9 @@ defmodule HexMini.Repo.Migrations.CreateReleases do
     create table(:releases) do
       add :package_id, references("packages")
 
-      add :owner, :string
-      add :version, :string
-      add :checksum, :binary
+      add :owner, :string, null: false
+      add :version, :string, null: false
+      add :checksum, :binary, null: false
 
       timestamps()
     end

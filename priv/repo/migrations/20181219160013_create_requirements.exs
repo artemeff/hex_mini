@@ -5,10 +5,10 @@ defmodule HexMini.Repo.Migrations.CreateRequirements do
     create table(:requirements) do
       add :release_id, references("releases")
 
-      add :app, :string
-      add :optional, :boolean
-      add :repository, :string
-      add :requirement, :string
+      add :app, :string, null: false
+      add :optional, :boolean, null: false
+      add :repository, :string, null: false
+      add :requirement, :string, null: false
 
       timestamps(updated_at: false)
     end

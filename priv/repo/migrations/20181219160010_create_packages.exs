@@ -3,8 +3,8 @@ defmodule HexMini.Repo.Migrations.CreatePackages do
 
   def change do
     create table(:packages) do
-      add :name, :string
-      add :owners, {:array, :string}
+      add :name, :string, null: false
+      add :owners, {:array, :string}, null: false
 
       timestamps()
     end
