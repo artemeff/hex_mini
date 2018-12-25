@@ -3,6 +3,7 @@
 * [Installation](#Installation)
 * [Usage](#Usage)
 * [Configuration](#Configuration)
+* [Roadmap](https://github.com/artemeff/hex_mini/projects)
 * [Contributing](#Contributing)
 
 ---
