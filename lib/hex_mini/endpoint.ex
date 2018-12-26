@@ -1,8 +1,8 @@
 defmodule HexMini.Endpoint do
   use Plug.Builder
 
-  plug Plug.Logger, log: :debug
   plug Plug.RequestId
+  plug Plug.Logger, log: :info
 
   plug Plug.Parsers,
     parsers: [:multipart, :urlencoded, :json],
