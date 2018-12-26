@@ -12,12 +12,12 @@ script:
 deploy:
   # build latest tag
   - provider: script
-    script: bash scripts/docker_build.sh latest
+    script: bash scripts/release_docker.sh latest
     on:
       branch: master
 
   # build version
   - provider: script
-    script: bash scripts/docker_build.sh $TRAVIS_TAG
+    script: bash scripts/release_docker.sh $TRAVIS_TAG
     on:
       tags: true
