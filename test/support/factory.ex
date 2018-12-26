@@ -12,7 +12,15 @@ defmodule HexMini.Factory do
     %HexMini.Packages.Release{
       version: "1.0.0", checksum: checksum(),
       requirements: [build(:requirement)],
-      owner: "john@doe"
+      owner: "john@doe",
+
+      app: "test_package", description: "test package",
+      files: ["mix.exs", "README.md"], licenses: ["MIT"],
+      build_tools: ["mix"],
+
+      elixir: "~> 1.7", maintainers: ["John Doe"],
+      links: %{"GitHub" => "https://github.com"},
+      extra: %{"some" => %{"extra" => "info"}}
     }
   end
 

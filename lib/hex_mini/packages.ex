@@ -81,9 +81,11 @@ defmodule HexMini.Packages do
     params = Map.merge(metadata, %{"package_id" => id, "checksum" => checksum, "owner" => user})
 
     %Release{}
-    |> cast(params, [:package_id, :owner, :version, :checksum])
+    |> cast(params, [:package_id, :owner, :app, :version, :checksum, :description, :files,
+                     :licenses, :build_tools, :elixir, :maintainers, :links, :extra])
     |> cast_assoc(:requirements, with: &requirement_changeset/2)
-    |> validate_required([:package_id, :owner, :version, :checksum])
+    |> validate_required([:package_id, :owner, :app, :version, :checksum, :description, :files,
+                          :licenses, :build_tools])
   end
 
   defp requirement_changeset(%Requirement{} = requirement, params) do
