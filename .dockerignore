@@ -6,6 +6,7 @@ deps/
 priv/keys/
 priv/packages/
 priv/credentials
+scripts/
 test/
 Dockerfile
 README*
