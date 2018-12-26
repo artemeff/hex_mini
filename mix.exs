@@ -20,6 +20,7 @@ defmodule HexMini.MixProject do
     ]
   end
 
+  defp elixirc_paths(:prod), do: ["lib", "rel/release_tasks"]
   defp elixirc_paths(:test), do: ["lib", "test/support"]
   defp elixirc_paths(_),     do: ["lib"]
 
@@ -30,6 +31,7 @@ defmodule HexMini.MixProject do
       {:plug_cowboy, "~> 2.0"},
       {:hex_core, "~> 0.3"},
       {:jason, "~> 1.1"},
+      {:distillery, "~> 2.0"},
       {:ex_machina, "~> 2.2", only: :test},
     ]
   end
