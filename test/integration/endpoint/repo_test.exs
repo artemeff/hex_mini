@@ -130,11 +130,9 @@ defmodule Integration.Endpoint.RepoTest do
       assert List.first(package.releases).owner == "ann@local"
     end
 
-    test "respond in Erlang term with all required information", %{conn: conn} do
+    test "respond in Erlang term with all required information", %{meta: meta, conn: conn} do
       assert erlang_response(conn, 201)
-          == %{"html_url" => "http://localhost:4000/publish/some/html_url",
-               "package_url" => "http://localhost:4000/publish/some/package_url",
-               "version" => "1.0.0"}
+          == %{"url" => "/packages/#{meta["name"]}", "version" => "1.0.0"}
     end
   end
 

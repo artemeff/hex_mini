@@ -44,10 +44,9 @@ defmodule HexMini.Endpoint.Repo.Publish do
     end
   end
 
-  defp response_body(_package, release) do
+  defp response_body(package, release) do
     %{
-      html_url: "http://localhost:4000/publish/some/html_url",
-      package_url: "http://localhost:4000/publish/some/package_url",
+      url: "/packages/#{package.name}",
       version: release.version
     }
   end
