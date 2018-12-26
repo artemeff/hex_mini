@@ -17,9 +17,15 @@ defmodule HexMini.ConfigTest do
       end)
     end
 
+    test "raise error when provide invalid path to key" do
+      assert_raise(File.Error, ~s(could not read file "invalid": no such file or directory), fn ->
+        Config.ensure_public_key!("invalid")
+      end)
+    end
+
     test "raise error when provide invalid key" do
       assert_raise(RuntimeError, "invalid public_key", fn ->
-        Config.ensure_public_key!("invalid")
+        Config.ensure_public_key!("mix.exs")
       end)
     end
 
@@ -41,15 +47,39 @@ defmodule HexMini.ConfigTest do
       end)
     end
 
+    test "raise error when provide invalid path to key" do
+      assert_raise(File.Error, ~s(could not read file "invalid": no such file or directory), fn ->
+        Config.ensure_private_key!("invalid")
+      end)
+    end
+
     test "raise error when provide invalid key" do
       assert_raise(RuntimeError, "invalid private_key", fn ->
-        Config.ensure_private_key!("invalid")
+        Config.ensure_private_key!("mix.exs")
       end)
     end
 
     test "raise error when provide empty key" do
       assert_raise(RuntimeError, "private_key is empty", fn ->
         Config.ensure_private_key!("")
+      end)
+    end
+  end
+
+  describe "#ensure_path!/1" do
+    test "returns path" do
+      assert "priv/repo" == Config.ensure_path!("priv/repo")
+    end
+
+    test "raise error when path does not exist" do
+      assert_raise(RuntimeError, "undefined/path does not exist", fn ->
+        Config.ensure_path!("undefined/path")
+      end)
+    end
+
+    test "raise error when pass path to the file" do
+      assert_raise(RuntimeError, "mix.exs is not a directory", fn ->
+        Config.ensure_path!("mix.exs")
       end)
     end
   end
