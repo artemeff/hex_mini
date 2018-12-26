@@ -76,7 +76,7 @@ defmodule Integration.Endpoint.RepoTest do
       info = build(:publish_package)
       tarball = :crypto.strong_rand_bytes(128)
 
-      {:ok, package, release} = HexMini.Packages.publish(info, tarball, "john_doe")
+      {:ok, _, package, release} = HexMini.Packages.publish(info, tarball, "john_doe")
 
       conn = request(:get, "/tarballs/#{package.name}-#{release.version}.tar", "", [
         {"authorization", "ANN_KEY"}
@@ -130,9 +130,24 @@ defmodule Integration.Endpoint.RepoTest do
       assert List.first(package.releases).owner == "ann@local"
     end
 
-    test "respond in Erlang term with all required information", %{meta: meta, conn: conn} do
+    test "respond 201 status in Erlang term with all required information", %{meta: meta, conn: conn} do
       assert erlang_response(conn, 201)
           == %{"url" => "/packages/#{meta["name"]}", "version" => "1.0.0"}
+    end
+
+    test "respond with 200 status when we publish a new release", %{meta: meta} do
+      meta = Map.put(meta, "version", "2.0.0")
+      body = publish_package_body(meta)
+
+      conn = request(:post, "/publish", body, [
+        {"accept", "application/vnd.hex+erlang"},
+        {"authorization", "ANN_KEY"},
+        {"content-type", "application/octet-stream"},
+        {"user-agent", "Hex/0.18.2 (Elixir/1.7.4) (OTP/21.2)"}
+      ])
+
+      assert erlang_response(conn, 200)
+          == %{"url" => "/packages/#{meta["name"]}", "version" => "2.0.0"}
     end
   end
 

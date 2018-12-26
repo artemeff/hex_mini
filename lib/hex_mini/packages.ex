@@ -29,16 +29,15 @@ defmodule HexMini.Packages do
     end
   end
 
-  # TODO handle user
   def publish(%{checksum: checksum, contents: _, metadata: meta}, tarball, user) do
     in_transaction(fn ->
-      with {:ok, %Package{} = package} <- fetch_or_create_package(meta, user),
+      with {:ok, action, %Package{} = package} <- fetch_or_create_package(meta, user),
            changeset = release_changeset(package, meta, checksum, user),
            {:ok, %Release{} = release} <- Repo.insert(changeset),
            :ok <- Storage.store(package, release, tarball),
            {:ok, _changelog} <- Repo.insert(changelog_changeset(package, release, user))
       do
-        {:ok, package, release}
+        {:ok, action, package, release}
       else
         {:error, reason} -> Repo.rollback(reason)
       end
@@ -62,15 +61,20 @@ defmodule HexMini.Packages do
   defp check_release_existence(%Package{} = package, version) do
     case Repo.get_by(Release, package_id: package.id, version: version) do
       %Release{} -> {:error, :already_released}
-      nil -> {:ok, package}
+      nil -> {:ok, :update, package}
     end
   end
 
   defp create_package(name, owner) do
-    %Package{}
-    |> cast(%{"name" => name, "owners" => [owner]}, [:name, :owners])
-    |> validate_required([:name, :owners])
-    |> Repo.insert()
+    changeset =
+      %Package{}
+      |> cast(%{"name" => name, "owners" => [owner]}, [:name, :owners])
+      |> validate_required([:name, :owners])
+
+    case Repo.insert(changeset) do
+      {:ok, package} -> {:ok, :create, package}
+      {:error, reason} -> {:error, reason}
+    end
   end
 
   defp release_changeset(%Package{id: id}, metadata, checksum, user) do
@@ -88,7 +92,6 @@ defmodule HexMini.Packages do
     |> validate_required([:app, :requirement, :repository, :optional])
   end
 
-  # TODO add release.version
   defp changelog_changeset(%Package{} = package, %Release{} = release, user) do
     params = %{package_id: package.id, release_id: release.id, user: user, action: "publish"}
 

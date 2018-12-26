@@ -29,12 +29,11 @@ defmodule HexMini.Endpoint.Repo.Publish do
   end
 
   defp publish_release(conn, _opts) do
-    # TODO if it's a new package - 201, otherwise 200
     case HexMini.Packages.publish(conn.assigns.package, conn.assigns.tarball, conn.assigns.current_user) do
-      {:ok, package, release} ->
+      {:ok, action, package, release} ->
         conn
         |> put_resp_header("location", "http://localhost:4000/publish/some/package")
-        |> respond(201, response_body(package, release))
+        |> respond(action_status(action), response_body(package, release))
 
       {:error, %Ecto.Changeset{} = changeset} ->
         respond_error(conn, 422, errors: changeset_errors(changeset))
@@ -43,6 +42,9 @@ defmodule HexMini.Endpoint.Repo.Publish do
         respond_error(conn, 422, message: inspect(reason))
     end
   end
+
+  defp action_status(:create), do: 201
+  defp action_status(:update), do: 200
 
   defp response_body(package, release) do
     %{

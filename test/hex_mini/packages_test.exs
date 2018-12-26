@@ -9,7 +9,7 @@ defmodule HexMini.PackagesTest do
       info = build(:publish_package)
       tarball = <<1, 2, 3, 4, 5>>
 
-      assert {:ok, package, release} = Packages.publish(info, tarball, "john@doe")
+      assert {:ok, _, package, release} = Packages.publish(info, tarball, "john@doe")
 
       assert package.name == info.metadata["name"]
       assert package.owners == ["john@doe"]
@@ -25,7 +25,7 @@ defmodule HexMini.PackagesTest do
       info = put_in(info, [:metadata, "requirements"], %{})
       tarball = <<1, 2, 3, 4, 5>>
 
-      assert {:ok, package, release} = Packages.publish(info, tarball, "john@doe")
+      assert {:ok, _, package, release} = Packages.publish(info, tarball, "john@doe")
 
       assert package.name == info.metadata["name"]
       assert package.owners == ["john@doe"]
@@ -40,7 +40,7 @@ defmodule HexMini.PackagesTest do
       info = build(:publish_package)
       tarball = <<1, 2, 3, 4, 5>>
 
-      assert {:ok, package, release} = Packages.publish(info, tarball, "john@doe")
+      assert {:ok, _, package, release} = Packages.publish(info, tarball, "john@doe")
       assert path = Storage.fetch_path(package.name, release.version)
       assert {:ok, tarball} == File.read(path)
     end
@@ -48,10 +48,23 @@ defmodule HexMini.PackagesTest do
     test "creates changelog" do
       info = build(:publish_package)
 
-      assert {:ok, package, release} = Packages.publish(info, <<>>, "john@doe")
+      assert {:ok, _, package, release} = Packages.publish(info, <<>>, "john@doe")
       assert changelog = Repo.get_by(Changelog, package_id: package.id, release_id: release.id)
       assert changelog.action == "publish"
       assert changelog.user == "john@doe"
+    end
+
+    test "returns action = :create when it is a new package" do
+      info = build(:publish_package)
+      assert {:ok, :create, _, _} = Packages.publish(info, <<>>, "john@doe")
+    end
+
+    test "returns action = :update when it is a new release for package" do
+      info = build(:publish_package)
+      assert {:ok, :create, _, _} = Packages.publish(info, <<>>, "john@doe")
+
+      info = put_in(info, [:metadata, "version"], "2.0.0")
+      assert {:ok, :update, _, _} = Packages.publish(info, <<>>, "john@doe")
     end
 
     test "returns error `forbidden` when user is not in package owners" do
@@ -64,7 +77,7 @@ defmodule HexMini.PackagesTest do
     test "returns error `already_released` when package version already published" do
       info = build(:publish_package)
 
-      assert {:ok, _, _} = Packages.publish(info, <<>>, "john@doe")
+      assert {:ok, _, _, _} = Packages.publish(info, <<>>, "john@doe")
       assert {:error, :already_released} = Packages.publish(info, <<>>, "john@doe")
     end
   end
