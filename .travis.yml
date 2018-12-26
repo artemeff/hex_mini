@@ -8,3 +8,16 @@ services:
 
 script:
   - MIX_ENV=test mix do deps.get, ecto.setup, test
+
+deploy:
+  # build latest tag
+  - provider: script
+    script: bash scripts/docker_build.sh latest
+    on:
+      branch: master
+
+  # build version
+  - provider: script
+    script: bash scripts/docker_build.sh $TRAVIS_TAG
+    on:
+      tags: true
