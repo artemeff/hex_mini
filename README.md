@@ -17,19 +17,19 @@ $ openssl genpkey -algorithm RSA -out private_key.pem -pkeyopt rsa_keygen_bits:2
 $ openssl rsa -pubout -in private_key.pem -out public_key.pem
 ```
 
-### Start HexMini using Docker
-
-...
-
 ### Start HexMini using Docker Compose
 
-...
+Copy [`docker-compose.yml`](/docker-compose.yml) from this repo, open, configure with your keys and credentials, then run:
+
+```bash
+$ docker-compose up -d
+```
 
 ---
 
 ## Usage
 
-### Register private repo
+### Register private repo on your machine
 
 ```bash
 $ curl http://<HOST>/public_key -so ~/.hex/<REPO_NAME>.pem
@@ -56,7 +56,29 @@ $ HEX_API_URL=http://<HOST> HEX_API_KEY=<AUTH_KEY> mix hex.publish package
 
 ## Configuration
 
-...
+You can configure HexMini release with theese env variables:
+
+```bash
+HM_PUBLIC_KEY       # public key contents or path to file
+HM_PRIVATE_KEY      # private key contents or path to file
+HM_DATA_PATH        # data path, default to: /var/lib/hex_mini
+HM_CREDENTIALS_FILE # path to credentials file
+```
+
+### HM_CREDENTIALS_FILE
+
+Credentials file should follow this format:
+
+```
+<username>:<auth_token>
+```
+
+Like:
+
+```
+john_doe@local.dev:auth_token1
+john_doe:auth_token2
+```
 
 ---
 

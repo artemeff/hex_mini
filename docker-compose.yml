@@ -1,0 +1,36 @@
+version: "3"
+
+services:
+  hex_mini:
+    image: artemeff/hex_mini:latest
+    ports:
+      - "4000:4000"
+    volumes:
+      - hex_mini_data:/var/lib/hex_mini
+      - ./priv/keys:/etc/hex_mini/keys
+      - ./priv/credentials:/etc/hex_mini/credentials
+    environment:
+      HM_PUBLIC_KEY: "/etc/hex_mini/keys/public_key.pem"
+      HM_PRIVATE_KEY: "/etc/hex_mini/keys/private_key.pem"
+      HM_CREDENTIALS_FILE: "/etc/hex_mini/credentials"
+    depends_on:
+      - postgres
+    networks:
+      - hex_mini
+
+  postgres:
+    image: postgres:10.5-alpine
+    restart: always
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - hex_mini
+
+volumes:
+  hex_mini_data:
+    driver: local
+  postgres_data:
+    driver: local
+
+networks:
+  hex_mini:
