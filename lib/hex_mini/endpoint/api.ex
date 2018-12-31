@@ -34,14 +34,9 @@ defmodule HexMini.Endpoint.API do
     respond(conn, status, response)
   end
 
-  defp message(400), do: "Bad request"
-  defp message(404), do: "Page not found"
-  defp message(408), do: "Request timeout"
   defp message(413), do: "Payload too large"
-  defp message(415), do: "Unsupported media type"
   defp message(422), do: "Validation error(s)"
-  defp message(500), do: "Internal server error"
-  defp message(_), do: nil
+  defp message(int), do: Conn.Status.reason_phrase(int)
 
   defp accept_header(conn) do
     case Conn.get_req_header(conn, "accept") do
