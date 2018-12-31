@@ -1,4 +1,8 @@
 defmodule HexMini.Endpoint.Repo.PublicKey do
+  @moduledoc """
+  Returns Public Key of the current HexMini instance.
+  """
+
   import Plug.Conn
 
   def init(_), do: []

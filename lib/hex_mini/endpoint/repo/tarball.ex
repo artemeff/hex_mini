@@ -1,4 +1,8 @@
 defmodule HexMini.Endpoint.Repo.Tarball do
+  @moduledoc """
+  Returns package tarball, invokes with `mix deps.get`
+  """
+
   import Plug.Conn
 
   @regex ~r/(?<name>.*)-(?<version>.*).tar/
