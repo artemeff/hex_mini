@@ -4,6 +4,95 @@ defmodule HexMini.PackagesTest do
   alias HexMini.{Repo, Packages, Storage}
   alias HexMini.Packages.Changelog
 
+  describe "#owners/1" do
+    test "returns package owners" do
+      package = insert(:package)
+
+      assert {:ok, package.owners} == Packages.owners(package.name)
+    end
+
+    test "returns error when package not found" do
+      assert {:error, :not_found} == Packages.owners("undefined")
+    end
+  end
+
+  describe "#add_owner/3" do
+    test "adds owner to the package" do
+      package = insert(:package)
+      current_user = List.first(package.owners)
+
+      assert {:ok, package} = Packages.add_owner(package.name, current_user, "new_owner")
+      assert package.owners == ["new_owner", current_user]
+    end
+
+    test "don't duplicates owners" do
+      package = insert(:package)
+      current_user = List.first(package.owners)
+
+      assert {:ok, package} = Packages.add_owner(package.name, current_user, current_user)
+      assert package.owners == [current_user]
+    end
+
+    test "creates changelog" do
+      package = insert(:package)
+      current_user = List.first(package.owners)
+
+      assert {:ok, package} = Packages.add_owner(package.name, current_user, "new_owner")
+      assert [changelog] = Repo.all(Changelog)
+      assert changelog.package_id == package.id
+      assert changelog.user == current_user
+      assert changelog.action == "owner_add"
+      assert changelog.meta == %{"user" => "new_owner"}
+    end
+
+    test "returns forbidden error when current_user is not in owners" do
+      package = insert(:package)
+
+      assert {:error, :forbidden} == Packages.add_owner(package.name, "undefined", "new_owner")
+    end
+
+    test "returns error when package not found" do
+      assert {:error, :not_found} == Packages.add_owner("undefined", "undefined", "new_owner")
+    end
+  end
+
+  describe "#delete_owner/3" do
+    test "removes owner from the package" do
+      package = insert(:package, owners: ["owner1", "owner2"])
+
+      assert {:ok, package} = Packages.delete_owner(package.name, "owner1", "owner2")
+      assert package.owners == ["owner1"]
+    end
+
+    test "creates changelog" do
+      package = insert(:package, owners: ["owner1", "owner2"])
+
+      assert {:ok, package} = Packages.delete_owner(package.name, "owner1", "owner2")
+      assert [changelog] = Repo.all(Changelog)
+      assert changelog.package_id == package.id
+      assert changelog.user == "owner1"
+      assert changelog.action == "owner_delete"
+      assert changelog.meta == %{"user" => "owner2"}
+    end
+
+    test "returns error when user tries to remove yourself (when he is the last one)" do
+      package = insert(:package)
+      current_user = List.first(package.owners)
+
+      assert {:error, :empty_owners} == Packages.delete_owner(package.name, current_user, current_user)
+    end
+
+    test "returns forbidden error when current_user is not in owners" do
+      package = insert(:package)
+
+      assert {:error, :forbidden} == Packages.delete_owner(package.name, "undefined", "new_owner")
+    end
+
+    test "returns error when package not found" do
+      assert {:error, :not_found} == Packages.delete_owner("undefined", "undefined", "new_owner")
+    end
+  end
+
   describe "#publish/3" do
     test "creates package with release and requirements" do
       info = build(:publish_package)

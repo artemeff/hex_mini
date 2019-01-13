@@ -71,6 +71,124 @@ defmodule Integration.Endpoint.RepoTest do
     end
   end
 
+  describe "GET /packages/:name/owners" do
+    test "respond in json with package info" do
+      package = insert(:package)
+
+      conn = request(:get, "/packages/#{package.name}/owners", %{}, [
+        {"authorization", "ANN_KEY"}
+      ])
+
+      assert json_response(conn, 200)
+          == [%{"email" => "john@doe", "level" => "full"}]
+    end
+
+    test "respond with 404 when package not found" do
+      conn = request(:get, "/packages/undefined/owners", %{}, [
+        {"authorization", "ANN_KEY"}
+      ])
+
+      assert json_response(conn, 404)
+          == %{"status" => 404, "message" => "Package not found"}
+    end
+
+    test "respond with 401 json when there is no authorization header" do
+      conn = request(:get, "/packages/undefined/owners", %{}, [])
+
+      assert json_response(conn, 401)
+          == %{"status" => 401, "message" => "missing authentication information"}
+    end
+  end
+
+  describe "PUT /packages/:name/owners/:owner" do
+    test "adds owner and respond 204 with empty body" do
+      package = insert(:package, owners: ["ann@local"])
+
+      conn = request(:put, "/packages/#{package.name}/owners/john@doe", %{}, [
+        {"authorization", "ANN_KEY"}
+      ])
+
+      assert response(conn, 204) == ""
+    end
+
+    test "respond with 403 when current user is not in owners" do
+      package = insert(:package, owners: ["john@doe"])
+
+      conn = request(:put, "/packages/#{package.name}/owners/some@user", %{}, [
+        {"authorization", "ANN_KEY"}
+      ])
+
+      assert json_response(conn, 403)
+          == %{"status" => 403, "message" => "Forbidden"}
+    end
+
+    test "respond with 404 when package not found" do
+      conn = request(:put, "/packages/undefined/owners/john@doe", %{}, [
+        {"authorization", "ANN_KEY"}
+      ])
+
+      assert json_response(conn, 404)
+          == %{"status" => 404, "message" => "Package not found"}
+    end
+
+    test "respond with 401 json when there is no authorization header" do
+      conn = request(:put, "/packages/undefined/owners/john@doe", %{}, [])
+
+      assert json_response(conn, 401)
+          == %{"status" => 401, "message" => "missing authentication information"}
+    end
+  end
+
+  describe "DELETE /packages/:name/owners/:owner" do
+    test "adds owner and respond 204 with empty body" do
+      package = insert(:package, owners: ["ann@local"])
+
+      conn = request(:delete, "/packages/#{package.name}/owners/john@doe", %{}, [
+        {"authorization", "ANN_KEY"}
+      ])
+
+      assert response(conn, 204) == ""
+    end
+
+    test "respond with 400 when we remove yourself (the last authorized owner)" do
+      package = insert(:package, owners: ["ann@local"])
+
+      conn = request(:delete, "/packages/#{package.name}/owners/ann@local", %{}, [
+        {"authorization", "ANN_KEY"}
+      ])
+
+      assert json_response(conn, 400)
+          == %{"status" => 400, "message" => "You can not remove yourself"}
+    end
+
+    test "respond with 403 when current user is not in owners" do
+      package = insert(:package, owners: ["john@doe"])
+
+      conn = request(:delete, "/packages/#{package.name}/owners/john@doe", %{}, [
+        {"authorization", "ANN_KEY"}
+      ])
+
+      assert json_response(conn, 403)
+          == %{"status" => 403, "message" => "Forbidden"}
+    end
+
+    test "respond with 404 when package not found" do
+      conn = request(:delete, "/packages/undefined/owners/john@doe", %{}, [
+        {"authorization", "ANN_KEY"}
+      ])
+
+      assert json_response(conn, 404)
+          == %{"status" => 404, "message" => "Package not found"}
+    end
+
+    test "respond with 401 json when there is no authorization header" do
+      conn = request(:delete, "/packages/undefined/owners/john@doe", %{}, [])
+
+      assert json_response(conn, 401)
+          == %{"status" => 401, "message" => "missing authentication information"}
+    end
+  end
+
   describe "GET /tarballs/:name_with_version" do
     test "respond with tarball file" do
       info = build(:publish_package)

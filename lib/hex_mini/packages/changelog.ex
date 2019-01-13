@@ -7,6 +7,7 @@ defmodule HexMini.Packages.Changelog do
 
     field :user, :string
     field :action, :string
+    field :meta, :map, default: %{}
 
     timestamps(updated_at: false)
   end

@@ -29,13 +29,49 @@ defmodule HexMini.Packages do
     end
   end
 
+  def owners(name) do
+    with {:ok, package} <- fetch_package(name) do
+      {:ok, package.owners}
+    end
+  end
+
+  def add_owner(name, current_user, owner_to_add) do
+    with {:ok, package} <- fetch_package_and_check_owners(name, current_user),
+         owners = Enum.uniq([owner_to_add | package.owners]),
+         {:ok, package} <- update_owners(package, owners),
+         {:ok, _} <- changelog_add_owner(package, current_user, owner_to_add)
+    do
+      {:ok, package}
+    end
+  end
+
+  def delete_owner(name, current_user, owner_to_delete) do
+    with {:ok, package} <- fetch_package_and_check_owners(name, current_user),
+         [_ | _] = owners <- List.delete(package.owners, owner_to_delete),
+         {:ok, package} <- update_owners(package, owners),
+         {:ok, _} <- changelog_delete_owner(package, current_user, owner_to_delete)
+    do
+      {:ok, package}
+    else
+      [] -> {:error, :empty_owners}
+      {:error, reason} -> {:error, reason}
+    end
+  end
+
+  defp update_owners(package, new_owners) do
+    package
+    |> cast(%{"owners" => new_owners}, [:owners])
+    |> validate_required([:owners])
+    |> Repo.update
+  end
+
   def publish(%{checksum: checksum, contents: _, metadata: meta}, tarball, user) do
     in_transaction(fn ->
       with {:ok, action, %Package{} = package} <- fetch_or_create_package(meta, user),
            changeset = release_changeset(package, meta, checksum, user),
            {:ok, %Release{} = release} <- Repo.insert(changeset),
            :ok <- Storage.store(package, release, tarball),
-           {:ok, _changelog} <- Repo.insert(changelog_changeset(package, release, user))
+           {:ok, _} <- changelog_publish(package, release, user)
       do
         {:ok, action, package, release}
       else
@@ -45,15 +81,15 @@ defmodule HexMini.Packages do
   end
 
   defp fetch_or_create_package(%{"name" => name, "version" => version}, owner) do
-    case Repo.get_by(Package, name: name) do
-      %Package{} = package ->
+    case fetch_package(name) do
+      {:ok, %Package{} = package} ->
         if owner in package.owners do
           check_release_existence(package, version)
         else
           {:error, :forbidden}
         end
 
-      nil ->
+      {:error, :not_found} ->
         create_package(name, owner)
     end
   end
@@ -94,12 +130,43 @@ defmodule HexMini.Packages do
     |> validate_required([:app, :requirement, :repository, :optional])
   end
 
-  defp changelog_changeset(%Package{} = package, %Release{} = release, user) do
-    params = %{package_id: package.id, release_id: release.id, user: user, action: "publish"}
+  defp changelog_publish(package, release, user) do
+    Repo.insert(changelog_changeset("publish", package, user, release.id))
+  end
+
+  defp changelog_add_owner(package, user, new_owner) do
+    Repo.insert(changelog_changeset("owner_add", package, user, nil, %{user: new_owner}))
+  end
+
+  defp changelog_delete_owner(package, user, deleted_owner) do
+    Repo.insert(changelog_changeset("owner_delete", package, user, nil, %{user: deleted_owner}))
+  end
+
+  defp changelog_changeset(action, %Package{} = package, user, release_id, meta \\ %{}) do
+    params = %{package_id: package.id, release_id: release_id,
+               user: user, action: action, meta: meta}
 
     %Changelog{}
-    |> cast(params, [:package_id, :release_id, :user, :action])
-    |> validate_required([:package_id, :release_id, :user, :action])
+    |> cast(params, [:package_id, :release_id, :user, :action, :meta])
+    |> validate_required([:package_id, :user, :action, :meta])
+    |> validate_inclusion(:action, ["publish", "owner_add", "owner_delete"])
+  end
+
+  defp fetch_package(name) do
+    case Repo.get_by(Package, name: name) do
+      %Package{} = package -> {:ok, package}
+      nil -> {:error, :not_found}
+    end
+  end
+
+  defp fetch_package_and_check_owners(name, user) do
+    with {:ok, %Package{} = package} <- fetch_package(name) do
+      if user in package.owners do
+        {:ok, package}
+      else
+        {:error, :forbidden}
+      end
+    end
   end
 
   defp in_transaction(fun) do

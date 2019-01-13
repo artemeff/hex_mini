@@ -3,20 +3,29 @@ defmodule Integration.Endpoint.APITest do
 
   describe "GET /" do
     test "returns changelog in json format" do
-      cl = insert(:changelog)
+      p = insert(:package, name: "test_package")
+
+      cl1 = insert(:changelog, package: p, release: build(:release))
+      cl2 = insert(:changelog, package: p, action: "owner_add", meta: %{"user" => "john_doe"})
 
       conn = request(:get, "/", "", [
         {"authorization", "ANN_KEY"}
       ])
 
       assert json_response(conn, 200)
-          == [%{"name" => cl.package.name, "version" => cl.release.version,
-                "user" => cl.release.owner, "action" => cl.action,
-                "date" => cl.release.inserted_at |> NaiveDateTime.truncate(:second) |> NaiveDateTime.to_iso8601}]
+          == [%{"name" => cl1.package.name, "user" => cl1.user,
+                "action" => "publish test_package 1.0.0",
+                "date" => date(cl1.inserted_at)},
+              %{"name" => cl2.package.name, "user" => cl2.user,
+                "action" => "add owner john_doe to test_package",
+                "date" => date(cl2.inserted_at)}]
     end
 
     test "returns changelog in plaintext format" do
-      cl = insert(:changelog)
+      p = insert(:package, name: "test_package")
+
+      cl1 = insert(:changelog, package: p, release: build(:release))
+      cl2 = insert(:changelog, package: p, action: "owner_add", meta: %{"user" => "john_doe"})
 
       conn = request(:get, "/", "", [
         {"accept", "text/html"},
@@ -25,9 +34,13 @@ defmodule Integration.Endpoint.APITest do
 
       assert response(conn, 200) ==
         """
-        #{cl.package.name} #{cl.release.version} #{cl.action}
-          at #{NaiveDateTime.truncate(cl.release.inserted_at, :second)}
-          by #{cl.release.owner}
+        publish test_package 1.0.0
+          at #{NaiveDateTime.truncate(cl1.inserted_at, :second)}
+          by #{cl1.user}
+
+        add owner john_doe to test_package
+          at #{NaiveDateTime.truncate(cl2.inserted_at, :second)}
+          by #{cl2.user}
 
         """
     end
@@ -65,5 +78,9 @@ defmodule Integration.Endpoint.APITest do
 
       assert json_response(conn, 401) == %{"status" => 401, "message" => "missing authentication information"}
     end
+  end
+
+  defp date(v) do
+    v |> NaiveDateTime.truncate(:second) |> NaiveDateTime.to_iso8601
   end
 end

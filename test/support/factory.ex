@@ -32,7 +32,7 @@ defmodule HexMini.Factory do
 
   def changelog_factory do
     %HexMini.Packages.Changelog{
-      user: "john@doe", action: "publish", package: build(:package), release: build(:release)
+      user: "john@doe", action: "publish", package: build(:package)
     }
   end
 

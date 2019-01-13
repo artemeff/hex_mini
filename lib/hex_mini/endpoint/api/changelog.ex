@@ -1,6 +1,8 @@
 defmodule HexMini.Endpoint.API.Changelog do
   import HexMini.Endpoint.API
 
+  alias HexMini.Packages.{Changelog, Release}
+
   def init(_), do: []
 
   def call(conn, _opts) do
@@ -10,16 +12,26 @@ defmodule HexMini.Endpoint.API.Changelog do
   end
 
   defp render(changelog) do
-    Enum.map(changelog, fn(c) ->
-      %{name: c.package.name, version: c.release.version, action: c.action,
-        user: c.release.owner, date: NaiveDateTime.truncate(c.release.inserted_at, :second)}
+    Enum.map(changelog, fn(%Changelog{} = c) ->
+      %{name: c.package.name, user: c.user, action: render_action(c),
+        date: NaiveDateTime.truncate(c.inserted_at, :second)}
     end)
   end
 
+  defp render_action(%Changelog{action: "publish", release: %Release{} = r} = c) do
+    "publish #{c.package.name} #{r.version}"
+  end
+  defp render_action(%Changelog{action: "owner_add"} = c) do
+    "add owner #{Map.fetch!(c.meta, "user")} to #{c.package.name}"
+  end
+  defp render_action(%Changelog{action: "owner_delete"} = c) do
+    "delete owner #{Map.fetch!(c.meta, "user")} from #{c.package.name}"
+  end
+
   defp render_html(changelog) do
-    Enum.reduce(changelog, "", fn(%{name: name, version: version, action: action, user: user, date: date}, acc) ->
+    Enum.reduce(changelog, "", fn(%{name: name, action: action, user: user, date: date}, acc) ->
       acc <> """
-      #{name} #{version} #{action}
+      #{action}
         at #{date}
         by #{user}
 
