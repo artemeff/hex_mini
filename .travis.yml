@@ -6,6 +6,9 @@ services:
   - docker
   - postgres
 
+addons:
+  postgresql: "9.6"
+
 script:
   - MIX_ENV=test mix do deps.get, ecto.setup, test
 
