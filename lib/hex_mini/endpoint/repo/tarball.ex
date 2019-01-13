@@ -1,6 +1,8 @@
 defmodule HexMini.Endpoint.Repo.Tarball do
   @moduledoc """
-  Returns package tarball, invokes with `mix deps.get`
+  Returns package tarball:
+
+    $ mix deps.get
   """
 
   import Plug.Conn

@@ -1,6 +1,8 @@
 defmodule HexMini.Endpoint.Repo.Publish do
   @moduledoc """
-  Handles Publish package endpoint: `mix hex.publish package`
+  Handles Publish package endpoint:
+
+    $ mix hex.publish package
   """
 
   use HexMini.Endpoint.API

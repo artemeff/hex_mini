@@ -1,7 +1,8 @@
 defmodule HexMini.Endpoint.Repo.Package do
   @moduledoc """
   Returns package metainfo: name, releases, requirements...
-  Invokes when user runs `mix deps.get`.
+
+    $ mix deps.get
   """
 
   import Plug.Conn
